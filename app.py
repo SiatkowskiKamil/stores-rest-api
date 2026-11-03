@@ -34,7 +34,9 @@ def create_app(db_url=None):
     migrate = Migrate(app, db)
     api = Api(app)
 
-    app.config["JWT_SECRET_KEY"] = "jose"
+    # Wartosc domyslna pochodzi z kursu i nadaje sie tylko do pracy lokalnej;
+    # na serwerze klucz przychodzi ze zmiennej srodowiskowej.
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jose")
     jwt = JWTManager(app)
 
     @jwt.token_in_blocklist_loader
