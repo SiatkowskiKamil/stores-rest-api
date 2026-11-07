@@ -21,6 +21,7 @@ from tasks import send_user_registration_email
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
+
 connection = redis.from_url(
     os.getenv("REDIS_URL")
 )  # Get this from Render.com or run in Docker
@@ -61,8 +62,9 @@ class UserLogin(MethodView):
         ).first()
 
         if user and pbkdf2_sha256.verify(user_data["password"], user.password):
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(identity=user.id)
+            # PyJWT >= 2.10 odrzuca token, ktorego "sub" nie jest tekstem.
+            access_token = create_access_token(identity=str(user.id), fresh=True)
+            refresh_token = create_refresh_token(identity=str(user.id))
             return {"access_token": access_token, "refresh_token": refresh_token}
 
         abort(401, message="Invalid credentials.")
