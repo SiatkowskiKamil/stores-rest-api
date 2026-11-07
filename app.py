@@ -28,7 +28,7 @@ def create_app(db_url=None):
     app.config["OPENAPI_URL_PREFIX"] = "/"
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", "sqlite:///data.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL") or "sqlite:///data.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
     migrate = Migrate(app, db)
@@ -36,7 +36,7 @@ def create_app(db_url=None):
 
     # Wartosc domyslna pochodzi z kursu i nadaje sie tylko do pracy lokalnej;
     # na serwerze klucz przychodzi ze zmiennej srodowiskowej.
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jose")
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY") or "jose"
     jwt = JWTManager(app)
 
     @jwt.token_in_blocklist_loader
