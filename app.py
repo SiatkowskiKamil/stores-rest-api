@@ -3,7 +3,7 @@ import os
 from flask import Flask, jsonify
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 from dotenv import load_dotenv
 
 
@@ -99,9 +99,12 @@ def create_app(db_url=None):
             401,
         )
 
-    @app.before_first_request
-    def create_tables():
-        db.create_all()
+    # Tabele zaklada Alembic, nie db.create_all(): create_all przy starcie
+    # zderzyloby sie z "flask db upgrade" w docker-entrypoint.sh (tabela juz
+    # istnieje). upgrade() do biezacej wersji jest idempotentny, wiec
+    # "flask run" na czystej bazie dziala bez osobnego kroku.
+    with app.app_context():
+        upgrade()
 
     api.register_blueprint(ItemBlueprint)
     api.register_blueprint(StoreBlueprint)
