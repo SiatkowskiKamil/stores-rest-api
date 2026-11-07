@@ -2,8 +2,9 @@
 
 REST API do zarządzania sklepami, produktami i tagami, napisane we Flasku.
 Projekt powstał podczas kursu *REST APIs with Flask and Python* i jest moim
-pierwszym projektem backendowym — zostawiam go takim, jaki jest, bo pokazuje,
-od czego zaczynałem.
+pierwszym projektem backendowym. Logikę zostawiam taką, jaka była, bo pokazuje,
+od czego zaczynałem — poprawiłem tylko to, przez co przestał się uruchamiać
+(szczegóły na końcu).
 
 ## Co robi
 
@@ -63,3 +64,15 @@ docker run -dp 5000:5000 stores-api
 - **Produkcyjnego klucza JWT.** `JWT_SECRET_KEY` czytany jest ze zmiennej
   środowiskowej, a wartość domyślna pochodzi z kursu i nadaje się wyłącznie do
   pracy lokalnej.
+
+## Co poprawiłem później
+
+Kod z kursu przestał działać na obecnych wersjach Flaska i PyJWT. Naprawiłem
+tylko to, co blokowało uruchomienie:
+
+- wersje zależności są przypięte, a Python to 3.13;
+- historia migracji była podwójna — została jedna, zgodna z modelami i
+  działająca także na SQLite;
+- token JWT zapisuje identyfikator użytkownika jako tekst, czego wymaga nowe PyJWT;
+- brak Redisa nie blokuje już startu ani rejestracji;
+- kontener słucha na porcie 5000, zgodnie z instrukcją powyżej.
