@@ -1,5 +1,6 @@
 import os
 import redis
+from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from passlib.hash import pbkdf2_sha256
@@ -22,10 +23,23 @@ from tasks import send_user_registration_email
 
 blp = Blueprint("Users", "users", description="Operations on users")
 
-connection = redis.from_url(
-    os.getenv("REDIS_URL")
-)  # Get this from Render.com or run in Docker
-queue = Queue("emails", connection=connection)
+
+def enqueue_registration_email(email, username):
+    """Wrzuca mail powitalny do kolejki; brak Redisa nie blokuje rejestracji.
+
+    Polaczenie powstaje dopiero tutaj, a nie przy imporcie modulu: import
+    nastepuje przed load_dotenv() w create_app, wiec REDIS_URL z pliku .env
+    nie byl jeszcze widoczny, a redis.from_url(None) wywracal start aplikacji.
+    """
+    redis_url = os.getenv("REDIS_URL")
+    if not redis_url:
+        current_app.logger.warning("REDIS_URL nie ustawiony - mail powitalny pominiety.")
+        return
+    try:
+        queue = Queue("emails", connection=redis.from_url(redis_url))
+        queue.enqueue(send_user_registration_email, email, username)
+    except redis.exceptions.RedisError:
+        current_app.logger.exception("Redis niedostepny - mail powitalny pominiety.")
 
 
 @blp.route("/register")
@@ -48,7 +62,7 @@ class UserRegister(MethodView):
         db.session.add(user)
         db.session.commit()
 
-        queue.enqueue(send_user_registration_email, user.email, user.username)
+        enqueue_registration_email(user.email, user.username)
 
         return {"message": "User created successfully."}, 201
 
