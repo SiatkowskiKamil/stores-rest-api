@@ -19,7 +19,7 @@ def send_simple_message(to, subject, body, html):
         f"https://api.mailgun.net/v3/{DOMAIN}/messages",
         auth=("api", os.getenv("MAILGUN_API_KEY")),
         data={
-            "from": f"Jose Salvatierra <mailgun@{DOMAIN}>",
+            "from": f"Kamil Siatkowski <mailgun@{DOMAIN}>",
             "to": [to],
             "subject": subject,
             "text": body,
